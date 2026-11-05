@@ -1,0 +1,16 @@
+# Suivi personnel du projet (pas destiné au repo public)
+PROGRESS.md
+
+# Base de données générée (reproductible via create_db.ipynb)
+pizza.db
+
+# Fichiers Python / Jupyter générés
+__pycache__/
+.ipynb_checkpoints/
+
+# Fichiers système
+.DS_Store
+
+# Environnement / secrets
+.env
+.venv/
