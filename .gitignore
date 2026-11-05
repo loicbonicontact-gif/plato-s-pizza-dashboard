@@ -1,8 +1,8 @@
 # Suivi personnel du projet (pas destiné au repo public)
 PROGRESS.md
 
-# Base de données générée (reproductible via create_db.ipynb)
-pizza.db
+# pizza.db est versionnée volontairement : nécessaire au déploiement Streamlit Cloud
+# (reproductible aussi via create_db.ipynb si besoin de la régénérer)
 
 # Fichiers Python / Jupyter générés
 __pycache__/
