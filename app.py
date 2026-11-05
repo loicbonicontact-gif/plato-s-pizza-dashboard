@@ -61,6 +61,25 @@ col1, col2, col3 = st.columns(3)
 col1.metric("Chiffre d'affaires", f"{ca_total:,.2f} €")
 col2.metric("Nombre de commandes", f"{nb_commandes}")
 col3.metric("Panier moyen", f"{panier_moyen:,.2f} €")
-st.caption("Le panier moyen correspond à peu près à 2 pizzas par commande.")
+
+st.markdown(f"""
+Avec un panier moyen de **{panier_moyen:,.2f} €** et un prix moyen par pizza d'environ 16,50 €, un client
+commande en moyenne **un peu plus de 2 pizzas** à chaque fois. C'est le point de départ de l'analyse : tout
+le reste (évolution, top pizzas, catégories, activité) sert à comprendre comment ce chiffre se construit et
+sur quoi on peut agir pour l'améliorer.
+""")
+
+st.divider()
+st.subheader("🧭 Comment naviguer dans ce tableau de bord")
+st.markdown("""
+Utilise le menu à gauche pour passer d'une page à l'autre. Chaque page répond à une question précise et
+contient : un graphique, une analyse en texte, et parfois un tableau détaillé à dérouler.
+
+1. **📈 Évolution du CA** — les ventes sont-elles stables sur l'année ?
+2. **🏆 Top Pizzas** — quelles pizzas rapportent le plus (et le moins) ?
+3. **🍕 Catégories** — quelle catégorie et quelle taille pèsent le plus dans les ventes ?
+4. **📅 Activité** — quels jours et quelles heures sont les plus chargés ?
+5. **💡 Recommandations** — ce qu'on en retient, les limites, et comment ce projet a été construit.
+""")
 
 st.caption("Projet Data Analyst — Plato's Pizza · SQL (SQLite) · Python (pandas) · Streamlit")

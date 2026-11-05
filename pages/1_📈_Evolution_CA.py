@@ -13,7 +13,12 @@ conn = get_connection()
 condition_categorie, condition_taille = get_filtres(conn)
 
 st.title("📈 Évolution du chiffre d'affaires par mois")
-st.write("Ce graphique montre si les ventes sont stables sur l'année, ou s'il y a des mois plus forts que d'autres.")
+st.markdown("""
+**Pourquoi regarder ça ?** Avant de parler de produits ou de jours précis, la première question
+à se poser est simple : est-ce que l'activité est stable sur l'année, ou est-ce qu'il y a des
+périodes beaucoup plus fortes (ou plus faibles) que d'autres ? Si oui, il faut s'y préparer à
+l'avance (stocks, personnel).
+""")
 
 requete_ca_mois = f"""
 SELECT strftime('%Y-%m', o.date) AS mois, SUM(od.quantity * p.price) AS ca
@@ -43,11 +48,22 @@ ax.set_ylabel("CA (€)")
 plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
 st.pyplot(fig)
 
-# Interprétation automatique : on retrouve le meilleur et le moins bon mois dans les données affichées
+st.subheader("🔎 Analyse")
+
+# Interprétation automatique : on retrouve le meilleur/pire mois et on calcule l'écart entre les deux
 if not df_ca_mois.empty:
     meilleur_mois = df_ca_mois.loc[df_ca_mois["ca"].idxmax()]
     pire_mois = df_ca_mois.loc[df_ca_mois["ca"].idxmin()]
-    st.info(
-        f"Le meilleur mois est **{meilleur_mois['mois_nom']}** avec **{meilleur_mois['ca']:,.2f} €**, "
-        f"contre **{pire_mois['ca']:,.2f} €** pour le mois le plus faible ({pire_mois['mois_nom']})."
-    )
+    ecart_pourcentage = (meilleur_mois["ca"] - pire_mois["ca"]) / pire_mois["ca"] * 100
+
+    st.markdown(f"""
+    - Le meilleur mois est **{meilleur_mois['mois_nom']}** avec **{meilleur_mois['ca']:,.2f} €** de chiffre d'affaires.
+    - Le mois le plus faible est **{pire_mois['mois_nom']}** avec **{pire_mois['ca']:,.2f} €**.
+    - L'écart entre les deux est d'environ **{ecart_pourcentage:.0f} %**, ce qui reste raisonnable : il n'y a pas de
+      mois catastrophique ni de mois exceptionnel qui sort vraiment du lot.
+    - **Ce que ça veut dire pour la pizzeria :** pas besoin de prévoir des renforts ou des stocks spéciaux pour
+      un mois en particulier — l'activité est globalement régulière sur l'année.
+    """)
+
+    with st.expander("Voir les chiffres mois par mois"):
+        st.dataframe(df_ca_mois[["mois_nom", "ca"]].rename(columns={"mois_nom": "Mois", "ca": "CA (€)"}), hide_index=True)
