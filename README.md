@@ -10,7 +10,7 @@ application Streamlit interactive pour la direction.
 - `create_db.ipynb` — notebook qui crée la base SQLite `pizza.db` à partir des CSV (contrôle qualité inclus)
 - `analysis.ipynb` — requêtes SQL d'analyse, interprétations et graphiques
 - `app.py` — page d'accueil de l'application Streamlit
-- `utils.py` — fonctions partagées par toutes les pages (connexion à la base, filtres)
+- `utils.py` — fonctions partagées par toutes les pages (connexion à la base, filtres catégorie/taille/période, jointures communes)
 - `pages/` — les autres pages de l'application Streamlit (une page par thème d'analyse)
 - `pizza.db` — base de données générée (non versionnée, voir ci-dessous comment la recréer)
 
