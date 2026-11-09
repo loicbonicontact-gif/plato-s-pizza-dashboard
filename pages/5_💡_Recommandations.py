@@ -4,14 +4,18 @@
 
 import streamlit as st
 
-st.set_page_config(page_title="Recommandations", page_icon="💡")
+st.set_page_config(page_title="Recommandations", page_icon="💡", layout="wide")
 
 st.title("💡 Ce qu'on en retient")
+st.caption("Conclusions calculées sur toute l'année 2015, sans filtre (voir les autres pages pour explorer avec les filtres).")
 st.markdown("""
 - **Jours chargés** : jeudi, vendredi et samedi concentrent le plus de commandes → prévoir plus de personnel ces jours-là.
-- **Taille qui marche** : la taille L est largement la plus vendue → la mettre en avant dans la communication.
-- **Pizzas à surveiller** : certaines pizzas (comme la Brie Carre) se vendent très peu → se poser la question de les retirer de la carte.
-- **Panier moyen** : environ 2 pizzas par commande → voir si on peut vendre autre chose à côté (boisson, dessert) pour le faire monter.
+- **Heures chargées** : deux pics, le midi (12h-13h) et le soir (17h-19h) → renforcer cuisine et livraison sur ces créneaux.
+- **Taille qui marche** : la taille L est largement la plus vendue → la mettre en avant (menus, promotions).
+- **Tailles à questionner** : XL et XXL se vendent presque jamais (552 et 28 pizzas sur l'année) → se demander si elles méritent leur place sur la carte.
+- **Pizzas à pousser** : The Thai Chicken et The Barbecue Chicken rapportent le plus (catégorie Chicken, prix plus élevé).
+- **Pizzas à surveiller** : The Brie Carre se vend très peu (490 unités) → se poser la question de la retirer de la carte.
+- **Panier moyen** : environ 2 pizzas par commande (38,31 €) → voir si on peut vendre autre chose à côté (boisson, dessert) pour le faire monter.
 """)
 
 st.subheader("⚠️ Limites de l'analyse")
@@ -38,7 +42,7 @@ with st.expander("🔧 Méthodologie (comment ce tableau de bord a été constru
 
     **3. Application (Streamlit)**
     Cette application relit `pizza.db` (jamais les CSV directement) via `pandas.read_sql()`, et les graphiques
-    sont faits avec `matplotlib`. Les filtres (catégorie, taille) changent la condition `WHERE` des
+    interactifs sont faits avec `plotly`. Les filtres (catégorie, taille, période) changent la condition `WHERE` des
     requêtes SQL, donc tous les chiffres et graphiques se recalculent en direct. L'application est
     découpée en plusieurs pages (dossier `pages/`) pour faciliter la navigation pendant la présentation.
     """)

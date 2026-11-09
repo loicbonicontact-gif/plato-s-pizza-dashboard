@@ -1,73 +1,61 @@
 # ============================================
-# Page : top pizzas par chiffre d'affaires
+# Page : top et flop des pizzas
 # ============================================
 
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-from utils import get_connection, get_filtres
+import plotly.express as px
+from utils import get_connection, get_filtres, FROM_VENTES
 
-st.set_page_config(page_title="Top Pizzas", page_icon="🏆")
+st.set_page_config(page_title="Top Pizzas", page_icon="🏆", layout="wide")
 
 conn = get_connection()
-condition_categorie, condition_taille = get_filtres(conn)
+condition_categorie, condition_taille, condition_periode = get_filtres(conn)
 
-st.title("🏆 Top 10 des pizzas par chiffre d'affaires")
-st.markdown("""
-**Pourquoi regarder ça ?** Toutes les pizzas ne se valent pas : certaines rapportent beaucoup plus
-que d'autres. Savoir lesquelles permet de décider quoi mettre en avant (menu, pub) et quoi, à
-l'inverse, retirer de la carte si ça ne se vend presque pas.
-""")
+st.title("🏆 Top et flop des pizzas")
+st.caption("Question : quelles pizzas mettre en avant, et lesquelles questionner ?")
 
-requete_top = f"""
-SELECT pt.name AS pizza_name, SUM(od.quantity * p.price) AS ca
-FROM order_details od
-JOIN pizzas p ON od.pizza_id = p.pizza_id
-JOIN pizza_types pt ON p.pizza_type_id = pt.pizza_type_id
-WHERE {condition_categorie} AND {condition_taille}
-GROUP BY pt.name
-ORDER BY ca DESC
-LIMIT 10
+# Une seule requête : CA et quantité pour chaque pizza (on garde aussi la catégorie)
+requete = f"""
+SELECT pt.name AS Pizza, pt.category AS Catégorie,
+       SUM(od.quantity * p.price) AS ca, SUM(od.quantity) AS quantite
+{FROM_VENTES}
+WHERE {condition_categorie} AND {condition_taille} AND {condition_periode}
+GROUP BY pt.name, pt.category
 """
-df_top = pd.read_sql(requete_top, conn)
+df = pd.read_sql(requete, conn)
 
-fig, ax = plt.subplots()
-ax.barh(df_top["pizza_name"], df_top["ca"])
-ax.invert_yaxis()
-ax.set_xlabel("CA (€)")
-st.pyplot(fig)
+if df.empty:
+    st.warning("Aucune vente ne correspond à ces filtres.")
+    st.stop()
 
+mesure = st.radio("Classer par", ["Chiffre d'affaires", "Quantité vendue"], horizontal=True)
+colonne = "ca" if mesure == "Chiffre d'affaires" else "quantite"
+libelle = "CA (€)" if colonne == "ca" else "Pizzas vendues"
+
+top = df.sort_values(colonne, ascending=False).head(10)
+flop = df.sort_values(colonne, ascending=True).head(5)
+
+g1, g2 = st.columns([3, 2])
+with g1:
+    st.subheader("Top 10")
+    fig = px.bar(top, x=colonne, y="Pizza", orientation="h", color="Catégorie", labels={colonne: libelle})
+    fig.update_yaxes(autorange="reversed")  # meilleure pizza en haut
+    st.plotly_chart(fig, width="stretch")
+with g2:
+    st.subheader("5 pizzas les moins vendues")
+    st.dataframe(flop[["Pizza", "Catégorie", "ca", "quantite"]].rename(
+        columns={"ca": "CA (€)", "quantite": "Quantité"}), hide_index=True)
+
+# --- Analyse (calculée à partir des chiffres affichés) ---
+meilleure = top.iloc[0]
+pire = flop.iloc[0]
+# Quelle catégorie revient le plus souvent dans le top 10 ?
+cat_frequente = top["Catégorie"].value_counts()
 st.subheader("🔎 Analyse")
-
-if not df_top.empty:
-    meilleure_pizza = df_top.iloc[0]
-    st.markdown(f"""
-    - **{meilleure_pizza['pizza_name']}** est la pizza qui rapporte le plus, avec **{meilleure_pizza['ca']:,.2f} €**
-      de chiffre d'affaires.
-    - On remarque que les pizzas en tête de ce classement sont surtout de la catégorie *Chicken* — ce sont des
-      pizzas vendues un peu plus cher, donc chaque vente rapporte plus, même sans être forcément les plus
-      commandées en quantité.
-    """)
-
-# Requête séparée : les pizzas qui se vendent le moins (flop), utile pour la même page
-requete_flop = f"""
-SELECT pt.name AS pizza_name, SUM(od.quantity * p.price) AS ca
-FROM order_details od
-JOIN pizzas p ON od.pizza_id = p.pizza_id
-JOIN pizza_types pt ON p.pizza_type_id = pt.pizza_type_id
-WHERE {condition_categorie} AND {condition_taille}
-GROUP BY pt.name
-ORDER BY ca ASC
-LIMIT 5
-"""
-df_flop = pd.read_sql(requete_flop, conn)
-
-if not df_flop.empty:
-    pire_pizza = df_flop.iloc[0]
-    st.markdown(f"""
-    - À l'inverse, **{pire_pizza['pizza_name']}** est la pizza qui rapporte le moins (**{pire_pizza['ca']:,.2f} €**).
-      C'est une pizza à surveiller : vaut-il la peine de la garder au menu ?
-    """)
-
-    with st.expander("Voir les 5 pizzas qui se vendent le moins"):
-        st.dataframe(df_flop.rename(columns={"pizza_name": "Pizza", "ca": "CA (€)"}), hide_index=True)
+st.markdown(f"""
+- **{meilleure['Pizza']}** est en tête ({meilleure['ca']:,.0f} € de CA, {meilleure['quantite']:,.0f} pizzas vendues).
+- La catégorie la plus présente dans ce top 10 est **{cat_frequente.index[0]}** ({cat_frequente.iloc[0]} pizzas sur {len(top)}).
+- À l'autre bout, **{pire['Pizza']}** ({pire['ca']:,.0f} € de CA, {pire['quantite']:,.0f} pizzas) : à surveiller, vaut-il la peine de la garder au menu ?
+- **À savoir :** le classement en CA et en quantité n'est pas le même. Une pizza chère peut rapporter plus sans être la plus commandée : change l'option « Classer par » pour comparer.
+""")

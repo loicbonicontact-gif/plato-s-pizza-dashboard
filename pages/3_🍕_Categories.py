@@ -1,83 +1,75 @@
 # ============================================
-# Page : répartition par catégorie
+# Page : répartition par catégorie et par taille
 # ============================================
 
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-from utils import get_connection, get_filtres
+import plotly.express as px
+from utils import get_connection, get_filtres, FROM_VENTES
 
-st.set_page_config(page_title="Catégories", page_icon="🍕")
+st.set_page_config(page_title="Catégories", page_icon="🍕", layout="wide")
 
 conn = get_connection()
-condition_categorie, condition_taille = get_filtres(conn)
+condition_categorie, condition_taille, condition_periode = get_filtres(conn)
+WHERE = f"WHERE {condition_categorie} AND {condition_taille} AND {condition_periode}"
 
-st.title("🍕 Répartition du chiffre d'affaires par catégorie et par taille")
-st.markdown("""
-**Pourquoi regarder ça ?** Plato's Pizza propose 4 catégories (Classic, Supreme, Chicken, Veggie) et
-5 tailles (S, M, L, XL, XXL). Savoir lesquelles pèsent vraiment dans les ventes permet de simplifier
-la carte si certaines options sont presque jamais choisies.
+st.title("🍕 Catégories et tailles")
+st.caption("Question : quelles catégories et quelles tailles pèsent vraiment dans les ventes ? (utile pour simplifier la carte)")
+
+# CA et quantité dans la même requête, pour chaque catégorie
+df_categorie = pd.read_sql(f"""
+SELECT pt.category AS Catégorie, SUM(od.quantity * p.price) AS ca, SUM(od.quantity) AS quantite
+{FROM_VENTES} {WHERE}
+GROUP BY pt.category
+""", conn)
+
+# Idem pour chaque taille
+df_taille = pd.read_sql(f"""
+SELECT p.size AS Taille, SUM(od.quantity * p.price) AS ca, SUM(od.quantity) AS quantite
+{FROM_VENTES} {WHERE}
+GROUP BY p.size
+""", conn)
+
+if df_categorie.empty:
+    st.warning("Aucune vente ne correspond à ces filtres.")
+    st.stop()
+
+mesure = st.radio("Mesurer en", ["Chiffre d'affaires", "Quantité vendue"], horizontal=True)
+colonne = "ca" if mesure == "Chiffre d'affaires" else "quantite"
+libelle = "CA (€)" if colonne == "ca" else "Pizzas vendues"
+
+g1, g2 = st.columns(2)
+with g1:
+    st.subheader("Par catégorie")
+    fig = px.pie(df_categorie, names="Catégorie", values=colonne, hole=0.45)
+    st.plotly_chart(fig, width="stretch")
+with g2:
+    st.subheader("Par taille")
+    # Les tailles sont rangées de la plus petite à la plus grande
+    fig = px.bar(df_taille, x="Taille", y=colonne, labels={colonne: libelle},
+                 category_orders={"Taille": ["S", "M", "L", "XL", "XXL"]})
+    st.plotly_chart(fig, width="stretch")
+
+# --- Analyse (calculée à partir des chiffres affichés) ---
+cat_top = df_categorie.sort_values(colonne, ascending=False).iloc[0]
+cat_bas = df_categorie.sort_values(colonne, ascending=False).iloc[-1]
+part_cat = cat_top[colonne] / df_categorie[colonne].sum()
+taille_top = df_taille.sort_values(colonne, ascending=False).iloc[0]
+part_taille = taille_top[colonne] / df_taille[colonne].sum()
+# Part des très grandes tailles, toujours mesurée en quantité vendue
+grandes = df_taille[df_taille["Taille"].isin(["XL", "XXL"])]["quantite"].sum()
+part_grandes = grandes / df_taille["quantite"].sum()
+
+st.subheader("🔎 Analyse")
+st.markdown(f"""
+- Catégorie en tête : **{cat_top['Catégorie']}** ({part_cat:.1%}). La plus faible : **{cat_bas['Catégorie']}**.
+- Taille en tête : **{taille_top['Taille']}** ({part_taille:.1%}).
+- Les tailles **XL et XXL** représentent **{part_grandes:.1%}** des pizzas vendues.
+- **Lecture :** {"elles se vendent très peu : on peut se demander si elles méritent leur place sur la carte." if part_grandes < 0.05 else "elles pèsent assez pour justifier leur place sur la carte."}
 """)
 
-requete_categorie = f"""
-SELECT pt.category AS categorie, SUM(od.quantity * p.price) AS ca
-FROM order_details od
-JOIN pizzas p ON od.pizza_id = p.pizza_id
-JOIN pizza_types pt ON p.pizza_type_id = pt.pizza_type_id
-WHERE {condition_categorie} AND {condition_taille}
-GROUP BY pt.category
-ORDER BY ca DESC
-"""
-df_categorie = pd.read_sql(requete_categorie, conn)
-
-st.subheader("Par catégorie")
-fig, ax = plt.subplots()
-ax.pie(df_categorie["ca"], labels=df_categorie["categorie"], autopct="%1.1f%%")
-st.pyplot(fig)
-
-if not df_categorie.empty:
-    categorie_top = df_categorie.iloc[0]
-    categorie_bas = df_categorie.iloc[-1]
-    part = categorie_top["ca"] / df_categorie["ca"].sum() * 100
-    ecart = df_categorie["ca"].max() - df_categorie["ca"].min()
-    st.markdown(f"""
-    - La catégorie **{categorie_top['categorie']}** est en tête avec **{part:.1f}%** du chiffre d'affaires affiché.
-    - La catégorie la plus faible est **{categorie_bas['categorie']}**, mais l'écart avec les autres reste modéré
-      (environ **{ecart:,.0f} €** entre la première et la dernière catégorie).
-    - **Ce que ça veut dire :** le portefeuille de produits est équilibré, aucune catégorie n'est négligeable.
-      Pas besoin de tout miser sur une seule famille de pizzas.
-    """)
-
-st.divider()
-st.subheader("Par taille")
-
-requete_taille = f"""
-SELECT p.size AS taille, SUM(od.quantity * p.price) AS ca
-FROM order_details od
-JOIN pizzas p ON od.pizza_id = p.pizza_id
-JOIN pizza_types pt ON p.pizza_type_id = pt.pizza_type_id
-WHERE {condition_categorie} AND {condition_taille}
-GROUP BY p.size
-ORDER BY ca DESC
-"""
-df_taille = pd.read_sql(requete_taille, conn)
-
-fig2, ax2 = plt.subplots()
-ax2.bar(df_taille["taille"], df_taille["ca"])
-ax2.set_xlabel("Taille")
-ax2.set_ylabel("CA (€)")
-st.pyplot(fig2)
-
-if not df_taille.empty:
-    taille_top = df_taille.iloc[0]
-    part_taille = taille_top["ca"] / df_taille["ca"].sum() * 100
-    st.markdown(f"""
-    - La taille **{taille_top['taille']}** domine très largement, avec **{part_taille:.1f}%** du chiffre d'affaires.
-    - Les tailles XL et XXL sont quasi anecdotiques : elles existent dans le catalogue mais ne sont presque
-      jamais commandées.
-    - **Ce que ça veut dire :** la taille la plus vendue mérite d'être mise en avant (menus, promotions), et on
-      peut se poser la question de garder ou non les tailles qui se vendent très peu.
-    """)
-
-    with st.expander("Voir les chiffres par taille"):
-        st.dataframe(df_taille.rename(columns={"taille": "Taille", "ca": "CA (€)"}), hide_index=True)
+with st.expander("Voir les chiffres détaillés"):
+    st.markdown("**Par catégorie**")
+    st.dataframe(df_categorie.rename(columns={"ca": "CA (€)", "quantite": "Quantité"}), hide_index=True)
+    st.markdown("**Par taille**")
+    st.dataframe(df_taille.rename(columns={"ca": "CA (€)", "quantite": "Quantité"}), hide_index=True)
