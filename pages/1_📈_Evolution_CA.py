@@ -35,12 +35,12 @@ df_ca_mois["Mois"] = df_ca_mois["num_mois"].map(NOMS_MOIS)
 mois_top = df_ca_mois.loc[df_ca_mois["ca"].idxmax()]
 mois_bas = df_ca_mois.loc[df_ca_mois["ca"].idxmin()]
 k1, k2, k3, k4 = st.columns(4)
-k1.metric("CA total", f"{df_ca_mois['ca'].sum():,.0f} €")
-k2.metric("CA moyen par mois", f"{df_ca_mois['ca'].mean():,.0f} €")
-k3.metric("Meilleur mois", mois_top["Mois"], f"{mois_top['ca']:,.0f} €", delta_color="off")
-k4.metric("Mois le plus faible", mois_bas["Mois"], f"{mois_bas['ca']:,.0f} €", delta_color="off")
+k1.metric("CA total", f"{df_ca_mois['ca'].sum():,.0f} $")
+k2.metric("CA moyen par mois", f"{df_ca_mois['ca'].mean():,.0f} $")
+k3.metric("Meilleur mois", mois_top["Mois"], f"{mois_top['ca']:,.0f} $", delta_color="off")
+k4.metric("Mois le plus faible", mois_bas["Mois"], f"{mois_bas['ca']:,.0f} $", delta_color="off")
 
-fig = px.line(df_ca_mois, x="Mois", y="ca", markers=True, labels={"ca": "CA (€)"})
+fig = px.line(df_ca_mois, x="Mois", y="ca", markers=True, labels={"ca": "CA ($)"})
 # Trait pointillé = moyenne mensuelle
 fig.add_hline(y=df_ca_mois["ca"].mean(), line_dash="dot", annotation_text="moyenne")
 st.plotly_chart(fig, width="stretch")
@@ -49,10 +49,10 @@ st.plotly_chart(fig, width="stretch")
 ecart = (mois_top["ca"] - mois_bas["ca"]) / mois_bas["ca"] * 100
 st.subheader("🔎 Analyse")
 st.markdown(f"""
-- Meilleur mois : **{mois_top['Mois']}** ({mois_top['ca']:,.0f} €). Mois le plus faible : **{mois_bas['Mois']}** ({mois_bas['ca']:,.0f} €).
+- Meilleur mois : **{mois_top['Mois']}** ({mois_top['ca']:,.0f} $). Mois le plus faible : **{mois_bas['Mois']}** ({mois_bas['ca']:,.0f} $).
 - Écart entre les deux : environ **{ecart:.0f} %**.
 - **Lecture :** {"l'activité est régulière, pas besoin de renfort saisonnier particulier." if ecart < 25 else "l'écart est important : il faut anticiper les mois forts (stocks, personnel)."}
 """)
 
 with st.expander("Voir les chiffres mois par mois"):
-    st.dataframe(df_ca_mois[["Mois", "ca"]].rename(columns={"ca": "CA (€)"}), hide_index=True)
+    st.dataframe(df_ca_mois[["Mois", "ca"]].rename(columns={"ca": "CA ($)"}), hide_index=True)

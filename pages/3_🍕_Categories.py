@@ -36,7 +36,7 @@ if df_categorie.empty:
 
 mesure = st.radio("Mesurer en", ["Chiffre d'affaires", "Quantité vendue"], horizontal=True)
 colonne = "ca" if mesure == "Chiffre d'affaires" else "quantite"
-libelle = "CA (€)" if colonne == "ca" else "Pizzas vendues"
+libelle = "CA ($)" if colonne == "ca" else "Pizzas vendues"
 
 g1, g2 = st.columns(2)
 with g1:
@@ -70,6 +70,6 @@ st.markdown(f"""
 
 with st.expander("Voir les chiffres détaillés"):
     st.markdown("**Par catégorie**")
-    st.dataframe(df_categorie.rename(columns={"ca": "CA (€)", "quantite": "Quantité"}), hide_index=True)
+    st.dataframe(df_categorie.rename(columns={"ca": "CA ($)", "quantite": "Quantité"}), hide_index=True)
     st.markdown("**Par taille**")
-    st.dataframe(df_taille.rename(columns={"ca": "CA (€)", "quantite": "Quantité"}), hide_index=True)
+    st.dataframe(df_taille.rename(columns={"ca": "CA ($)", "quantite": "Quantité"}), hide_index=True)

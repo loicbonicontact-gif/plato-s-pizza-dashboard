@@ -44,8 +44,8 @@ L'application s'ouvre dans le navigateur. Un menu à gauche permet de naviguer e
 
 ## Principaux constats et recommandations
 
-- En 2015, Plato's Pizza a réalisé **817 860 € de chiffre d'affaires** sur 21 350 commandes, soit un panier
-  moyen d'environ **38 €** (un peu plus de 2 pizzas par commande).
+- En 2015, Plato's Pizza a réalisé **817 860 $ de chiffre d'affaires** sur 21 350 commandes, soit un panier
+  moyen d'environ **38 $** (un peu plus de 2 pizzas par commande).
 - Les jours les plus chargés sont **jeudi, vendredi et samedi**, avec deux pics dans la journée : **12h-13h**
   et **17h-19h**.
 - La taille **L** est largement la plus vendue (près de la moitié du chiffre d'affaires).

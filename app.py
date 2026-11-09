@@ -90,15 +90,15 @@ df_heat["Jour"] = df_heat["num_jour"].map(NOMS_JOURS)
 # --- Rangée de chiffres clés ---
 mois_top = df_mois.loc[df_mois["ca"].idxmax()]
 c1, c2, c3, c4 = st.columns(4)
-c1.metric("Chiffre d'affaires", f"{ca_total:,.0f} €")
+c1.metric("Chiffre d'affaires", f"{ca_total:,.0f} $")
 c2.metric("Commandes", f"{nb_commandes:,}")
-c3.metric("Panier moyen", f"{panier_moyen:,.2f} €")
+c3.metric("Panier moyen", f"{panier_moyen:,.2f} $")
 c4.metric("Pizzas vendues", f"{nb_pizzas:,}")
 c5, c6, c7, c8 = st.columns(4)
-c5.metric("CA moyen par mois", f"{ca_moyen_mois:,.0f} €")
-c6.metric("CA moyen par jour", f"{ca_moyen_jour:,.0f} €")
+c5.metric("CA moyen par mois", f"{ca_moyen_mois:,.0f} $")
+c6.metric("CA moyen par jour", f"{ca_moyen_jour:,.0f} $")
 c7.metric("Pizzas par commande", f"{pizzas_par_commande:.1f}")
-c8.metric("Meilleur mois", mois_top["Mois"], f"{mois_top['ca']:,.0f} €", delta_color="off")
+c8.metric("Meilleur mois", mois_top["Mois"], f"{mois_top['ca']:,.0f} $", delta_color="off")
 
 st.divider()
 
@@ -106,18 +106,18 @@ st.divider()
 g1, g2 = st.columns(2)
 with g1:
     st.subheader("CA par mois")
-    fig = px.line(df_mois, x="Mois", y="ca", markers=True, labels={"ca": "CA (€)"})
+    fig = px.line(df_mois, x="Mois", y="ca", markers=True, labels={"ca": "CA ($)"})
     # Trait pointillé = moyenne mensuelle, pour voir d'un coup d'œil qui est au-dessus ou en dessous
     fig.add_hline(y=df_mois["ca"].mean(), line_dash="dot", annotation_text="moyenne")
     st.plotly_chart(fig, width="stretch")
 with g2:
     st.subheader("CA par jour de la semaine")
-    fig = px.bar(df_jour, x="Jour", y="ca", labels={"ca": "CA (€)"},
+    fig = px.bar(df_jour, x="Jour", y="ca", labels={"ca": "CA ($)"},
                  category_orders={"Jour": ORDRE_JOURS})
     st.plotly_chart(fig, width="stretch")
     jour_top = df_jour.loc[df_jour["ca"].idxmax()]
     jour_bas = df_jour.loc[df_jour["ca"].idxmin()]
-    st.caption(f"**{jour_top['Jour']}** rapporte le plus ({jour_top['ca']:,.0f} €), **{jour_bas['Jour']}** le moins ({jour_bas['ca']:,.0f} €).")
+    st.caption(f"**{jour_top['Jour']}** rapporte le plus ({jour_top['ca']:,.0f} $), **{jour_bas['Jour']}** le moins ({jour_bas['ca']:,.0f} $).")
 
 # --- Ligne 2 : top pizzas + catégories ---
 g3, g4 = st.columns(2)
@@ -127,7 +127,7 @@ with g3:
     colonne = "ca" if mesure == "Chiffre d'affaires" else "quantite"
     top10 = df_top.sort_values(colonne, ascending=False).head(10)
     fig = px.bar(top10, x=colonne, y="Pizza", orientation="h",
-                 labels={"ca": "CA (€)", "quantite": "Pizzas vendues"})
+                 labels={"ca": "CA ($)", "quantite": "Pizzas vendues"})
     # On remet la meilleure pizza en haut du graphique
     fig.update_yaxes(autorange="reversed")
     st.plotly_chart(fig, width="stretch")

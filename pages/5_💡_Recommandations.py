@@ -15,7 +15,7 @@ st.markdown("""
 - **Tailles à questionner** : XL et XXL se vendent presque jamais (552 et 28 pizzas sur l'année) → se demander si elles méritent leur place sur la carte.
 - **Pizzas à pousser** : The Thai Chicken et The Barbecue Chicken rapportent le plus (catégorie Chicken, prix plus élevé).
 - **Pizzas à surveiller** : The Brie Carre se vend très peu (490 unités) → se poser la question de la retirer de la carte.
-- **Panier moyen** : environ 2 pizzas par commande (38,31 €) → voir si on peut vendre autre chose à côté (boisson, dessert) pour le faire monter.
+- **Panier moyen** : environ 2 pizzas par commande (38,31 $) → voir si on peut vendre autre chose à côté (boisson, dessert) pour le faire monter.
 """)
 
 st.subheader("⚠️ Limites de l'analyse")

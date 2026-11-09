@@ -46,9 +46,9 @@ def test_chiffres_cles_accueil():
     # Les chiffres de l'accueil doivent correspondre à ceux du notebook
     at = AppTest.from_file(os.path.join(RACINE, "app.py"), default_timeout=60).run()
     valeurs = {m.label: m.value for m in at.metric}
-    assert valeurs["Chiffre d'affaires"] == "817,860 €"
+    assert valeurs["Chiffre d'affaires"] == "817,860 $"
     assert valeurs["Commandes"] == "21,350"
-    assert valeurs["Panier moyen"] == "38.31 €"
+    assert valeurs["Panier moyen"] == "38.31 $"
     assert valeurs["Pizzas vendues"] == "49,574"
 
 
@@ -58,7 +58,7 @@ def test_filtre_periode_reduit_le_ca():
     at = AppTest.from_file(os.path.join(RACINE, "app.py"), default_timeout=60).run()
     at.sidebar.date_input[0].set_value((datetime.date(2015, 1, 1), datetime.date(2015, 1, 31))).run()
     ca = {m.label: m.value for m in at.metric}["Chiffre d'affaires"]
-    assert ca != "817,860 €"
+    assert ca != "817,860 $"
 
 
 # --- Chiffres cités dans la page Recommandations ---

@@ -31,7 +31,7 @@ if df.empty:
 
 mesure = st.radio("Classer par", ["Chiffre d'affaires", "Quantité vendue"], horizontal=True)
 colonne = "ca" if mesure == "Chiffre d'affaires" else "quantite"
-libelle = "CA (€)" if colonne == "ca" else "Pizzas vendues"
+libelle = "CA ($)" if colonne == "ca" else "Pizzas vendues"
 
 top = df.sort_values(colonne, ascending=False).head(10)
 flop = df.sort_values(colonne, ascending=True).head(5)
@@ -45,7 +45,7 @@ with g1:
 with g2:
     st.subheader("5 pizzas les moins vendues")
     st.dataframe(flop[["Pizza", "Catégorie", "ca", "quantite"]].rename(
-        columns={"ca": "CA (€)", "quantite": "Quantité"}), hide_index=True)
+        columns={"ca": "CA ($)", "quantite": "Quantité"}), hide_index=True)
 
 # --- Analyse (calculée à partir des chiffres affichés) ---
 meilleure = top.iloc[0]
@@ -54,8 +54,8 @@ pire = flop.iloc[0]
 cat_frequente = top["Catégorie"].value_counts()
 st.subheader("🔎 Analyse")
 st.markdown(f"""
-- **{meilleure['Pizza']}** est en tête ({meilleure['ca']:,.0f} € de CA, {meilleure['quantite']:,.0f} pizzas vendues).
+- **{meilleure['Pizza']}** est en tête ({meilleure['ca']:,.0f} $ de CA, {meilleure['quantite']:,.0f} pizzas vendues).
 - La catégorie la plus présente dans ce top 10 est **{cat_frequente.index[0]}** ({cat_frequente.iloc[0]} pizzas sur {len(top)}).
-- À l'autre bout, **{pire['Pizza']}** ({pire['ca']:,.0f} € de CA, {pire['quantite']:,.0f} pizzas) : à surveiller, vaut-il la peine de la garder au menu ?
+- À l'autre bout, **{pire['Pizza']}** ({pire['ca']:,.0f} $ de CA, {pire['quantite']:,.0f} pizzas) : à surveiller, vaut-il la peine de la garder au menu ?
 - **À savoir :** le classement en CA et en quantité n'est pas le même. Une pizza chère peut rapporter plus sans être la plus commandée : change l'option « Classer par » pour comparer.
 """)

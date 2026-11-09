@@ -43,7 +43,7 @@ df_jour["Jour"] = df_jour["num_jour"].map(NOMS_JOURS)
 st.subheader("Par jour de la semaine")
 mesure = st.radio("Mesurer en", ["Nombre de commandes", "Chiffre d'affaires"], horizontal=True)
 colonne = "nb_commandes" if mesure == "Nombre de commandes" else "ca"
-fig = px.bar(df_jour, x="Jour", y=colonne, labels={"nb_commandes": "Commandes", "ca": "CA (€)"},
+fig = px.bar(df_jour, x="Jour", y=colonne, labels={"nb_commandes": "Commandes", "ca": "CA ($)"},
              category_orders={"Jour": ORDRE_JOURS})
 st.plotly_chart(fig, width="stretch")
 
