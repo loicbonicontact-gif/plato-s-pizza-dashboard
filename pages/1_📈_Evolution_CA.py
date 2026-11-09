@@ -40,6 +40,19 @@ noms_mois = {
 }
 df_ca_mois["mois_nom"] = df_ca_mois["mois"].str[5:7].map(noms_mois)
 
+# --- Chiffres clés du CA (ils suivent les filtres de la barre latérale) ---
+if not df_ca_mois.empty:
+    ca_annee = df_ca_mois["ca"].sum()
+    ca_moyen = df_ca_mois["ca"].mean()
+    mois_top = df_ca_mois.loc[df_ca_mois["ca"].idxmax()]
+    mois_bas = df_ca_mois.loc[df_ca_mois["ca"].idxmin()]
+
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("CA total", f"{ca_annee:,.0f} €")
+    k2.metric("CA moyen par mois", f"{ca_moyen:,.0f} €")
+    k3.metric("Meilleur mois", mois_top["mois_nom"], f"{mois_top['ca']:,.0f} €", delta_color="off")
+    k4.metric("Mois le plus faible", mois_bas["mois_nom"], f"{mois_bas['ca']:,.0f} €", delta_color="off")
+
 fig, ax = plt.subplots()
 # marker="o" = un point rond sur chaque mois, pour bien voir chaque valeur sur la courbe
 ax.plot(df_ca_mois["mois_nom"], df_ca_mois["ca"], marker="o")

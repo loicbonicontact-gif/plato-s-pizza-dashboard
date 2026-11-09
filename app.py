@@ -45,22 +45,39 @@ condition_categorie, condition_taille = get_filtres(conn)
 requete_kpi = f"""
 SELECT
     SUM(od.quantity * p.price) AS ca_total,
-    COUNT(DISTINCT od.order_id) AS nb_commandes
+    COUNT(DISTINCT od.order_id) AS nb_commandes,
+    SUM(od.quantity) AS nb_pizzas,
+    COUNT(DISTINCT o.date) AS nb_jours,
+    COUNT(DISTINCT strftime('%Y-%m', o.date)) AS nb_mois
 FROM order_details od
 JOIN pizzas p ON od.pizza_id = p.pizza_id
 JOIN pizza_types pt ON p.pizza_type_id = pt.pizza_type_id
+JOIN orders o ON od.order_id = o.order_id
 WHERE {condition_categorie} AND {condition_taille}
 """
 kpi = pd.read_sql(requete_kpi, conn)
 ca_total = kpi["ca_total"][0] if kpi["ca_total"][0] is not None else 0
 nb_commandes = kpi["nb_commandes"][0] if kpi["nb_commandes"][0] is not None else 0
+nb_pizzas = kpi["nb_pizzas"][0] if kpi["nb_pizzas"][0] is not None else 0
+nb_jours = kpi["nb_jours"][0]
+nb_mois = kpi["nb_mois"][0]
 panier_moyen = ca_total / nb_commandes if nb_commandes else 0
+# Si on ne trouve aucune vente, on met 0 pour éviter une division par zéro
+ca_moyen_mois = ca_total / nb_mois if nb_mois else 0
+ca_moyen_jour = ca_total / nb_jours if nb_jours else 0
+ca_par_pizza = ca_total / nb_pizzas if nb_pizzas else 0
 
 st.subheader("📊 Les chiffres clés")
 col1, col2, col3 = st.columns(3)
 col1.metric("Chiffre d'affaires", f"{ca_total:,.2f} €")
 col2.metric("Nombre de commandes", f"{nb_commandes}")
 col3.metric("Panier moyen", f"{panier_moyen:,.2f} €")
+
+# Deuxième rangée : les chiffres liés au chiffre d'affaires
+col4, col5, col6 = st.columns(3)
+col4.metric("CA moyen par mois", f"{ca_moyen_mois:,.2f} €")
+col5.metric("CA moyen par jour", f"{ca_moyen_jour:,.2f} €")
+col6.metric("CA par pizza vendue", f"{ca_par_pizza:,.2f} €")
 
 st.markdown(f"""
 Avec un panier moyen de **{panier_moyen:,.2f} €** et un prix moyen par pizza d'environ 16,50 €, un client
